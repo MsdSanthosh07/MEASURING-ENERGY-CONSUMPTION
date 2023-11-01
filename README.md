@@ -18,9 +18,6 @@ The regions have changed over the years so data may only appear for certain date
 
 This is a Kaggle dataset which can be found in this link: https://www.kaggle.com/robikscube/hourly-energy-consumption
 
-<p align="center">
-  <img src=https://github.com/MsdSanthosh07/MEASURING-ENERGY-CONSUMPTION/blob/main/Images/power_electric_plant.jpg>
-</p>
 
 We followed in this project the steps of the project management method called CRISP-DM. This method has undergone modifications aimed at the reality of a Data Science project and with that it was called CRISP-DS.
 
