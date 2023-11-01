@@ -1,0 +1,271 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+from IPython.core.display  import HTML
+from IPython.display       import Image
+from datetime              import date
+from tabulate              import tabulate
+from scipy.stats           import chi2_contingency
+
+
+from sklearn.ensemble      import RandomForestRegressor
+
+from sklearn.metrics       import mean_absolute_error, mean_squared_error
+from sklearn.linear_model  import LinearRegression, Lasso
+from sklearn.ensemble      import RandomForestRegressor
+
+
+import random
+import warnings
+warnings.filterwarnings( 'ignore' )
+
+def mean_percentage_error( y, yhat ):
+    return np.mean( ( y - yhat ) / y )
+
+def cross_validation( X_training, kfold, model_name, model, verbose=False ):
+    
+    mae_list  = []
+    mape_list = []
+    rmse_list = []
+    
+    for k in reversed( range( 1, kfold+1 ) ):
+        if verbose:
+            print( '\nKFold Number: {}'.format( k ) )
+        # start and end date for validation
+        validation_start_date_1  = X_training[X_training['electric_company']==1]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_2  = X_training[X_training['electric_company']==2]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_3  = X_training[X_training['electric_company']==3]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_4  = X_training[X_training['electric_company']==4]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_5  = X_training[X_training['electric_company']==5]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_6  = X_training[X_training['electric_company']==6]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_7  = X_training[X_training['electric_company']==7]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_8  = X_training[X_training['electric_company']==8]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_9  = X_training[X_training['electric_company']==9]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_10 = X_training[X_training['electric_company']==10]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_11 = X_training[X_training['electric_company']==11]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+        validation_start_date_12 = X_training[X_training['electric_company']==12]['datetime'].max() - datetime.timedelta( days=k*12*30 )
+
+        validation_end_date_1    = X_training[X_training['electric_company']==1]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_2    = X_training[X_training['electric_company']==2]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_3    = X_training[X_training['electric_company']==3]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_4    = X_training[X_training['electric_company']==4]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_5    = X_training[X_training['electric_company']==5]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_6    = X_training[X_training['electric_company']==6]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_7    = X_training[X_training['electric_company']==7]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_8    = X_training[X_training['electric_company']==8]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_9    = X_training[X_training['electric_company']==9]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_10   = X_training[X_training['electric_company']==10]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_11   = X_training[X_training['electric_company']==11]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+        validation_end_date_12   = X_training[X_training['electric_company']==12]['datetime'].max() - datetime.timedelta( days=(k-1)*12*30 )
+            
+        # filtering dataset
+        training = X_training[ ( (X_training['electric_company']==1) & (X_training['datetime'] < validation_start_date_1) )
+                 | ( (X_training['electric_company']==2) & (X_training['datetime'] < validation_start_date_2) )
+                 | ( (X_training['electric_company']==3) & (X_training['datetime'] < validation_start_date_3) )
+                 | ( (X_training['electric_company']==4) & (X_training['datetime'] < validation_start_date_4) )
+                 | ( (X_training['electric_company']==5) & (X_training['datetime'] < validation_start_date_5) )
+                 | ( (X_training['electric_company']==6) & (X_training['datetime'] < validation_start_date_6) )
+                 | ( (X_training['electric_company']==7) & (X_training['datetime'] < validation_start_date_7) )
+                 | ( (X_training['electric_company']==8) & (X_training['datetime'] < validation_start_date_8) )
+                 | ( (X_training['electric_company']==9) & (X_training['datetime'] < validation_start_date_9) )
+                 | ( (X_training['electric_company']==10)  & (X_training['datetime'] < validation_start_date_10) ) 
+                 | ( (X_training['electric_company']==11) & (X_training['datetime'] < validation_start_date_11) )
+                 | ( (X_training['electric_company']==12) & (X_training['datetime'] < validation_start_date_12) ) ]
+        
+        validation = X_training[ ( (X_training['electric_company']==1) & (X_training['datetime'] >= validation_start_date_1) & (X_training['datetime'] <= validation_end_date_1) ) 
+                 | ( (X_training['electric_company']==2) & (X_training['datetime'] >= validation_start_date_2) & (X_training['datetime'] <= validation_end_date_2) )
+                 | ( (X_training['electric_company']==3) & (X_training['datetime'] >= validation_start_date_3) & (X_training['datetime'] <= validation_end_date_3) )
+                 | ( (X_training['electric_company']==4) & (X_training['datetime'] >= validation_start_date_4) & (X_training['datetime'] <= validation_end_date_4) )
+                 | ( (X_training['electric_company']==5) & (X_training['datetime'] >= validation_start_date_5) & (X_training['datetime'] <= validation_end_date_5) )
+                 | ( (X_training['electric_company']==6) & (X_training['datetime'] >= validation_start_date_6) & (X_training['datetime'] <= validation_end_date_6) )
+                 | ( (X_training['electric_company']==7) & (X_training['datetime'] >= validation_start_date_7) & (X_training['datetime'] <= validation_end_date_7) )
+                 | ( (X_training['electric_company']==8) & (X_training['datetime'] >= validation_start_date_8) & (X_training['datetime'] <= validation_end_date_8) )
+                 | ( (X_training['electric_company']==9) & (X_training['datetime'] >= validation_start_date_9) & (X_training['datetime'] <= validation_end_date_9) )
+                 | ( (X_training['electric_company']==10) & (X_training['datetime'] >= validation_start_date_10) & (X_training['datetime'] <= validation_end_date_10) ) 
+                 | ( (X_training['electric_company']==11) & (X_training['datetime'] >= validation_start_date_11) & (X_training['datetime'] <= validation_end_date_11) )
+                 | ( (X_training['electric_company']==12) & (X_training['datetime'] >= validation_start_date_12) & (X_training['datetime'] <= validation_end_date_12) ) ]
+        
+        # training and validation dataset
+        # training
+        xtraining = training.drop( ['datetime', 'mw_energy_consumption' ], axis=1 )
+        ytraining = training['mw_energy_consumption']
+
+        #validation
+        xvalidation = validation.drop( ['datetime', 'mw_energy_consumption'], axis=1 )
+        yvalidation = validation['mw_energy_consumption']
+
+        # model
+        m = model.fit( xtraining, ytraining )
+
+        # prediction
+        yhat = m.predict( xvalidation )
+
+        # performance
+        m_result = ml_error( model_name, np.expm1( yvalidation ), np.expm1( yhat ) )
+
+        # store performance of each kfold interation
+        mae_list.append( m_result['MAE'] )
+        mape_list.append( m_result['MAPE'] )
+        rmse_list.append( m_result['RMSE'] )
+
+    return pd.DataFrame( { 'Model Name': model_name,
+                            'MAE CV': np.round( np.mean( mae_list ), 2 ).astype( str ) + ' +/- ' + np.round( np.std( mae_list ), 2 ).astype( str ),
+                            'MAPE CV': np.round( np.mean( mape_list ), 2 ).astype( str ) + ' +/- ' + np.round( np.std( mape_list ), 2 ).astype( str ),
+                            'RMSE CV': np.round( np.mean( rmse_list ), 2 ).astype( str ) + ' +/- ' + np.round( np.std( rmse_list ), 2 ).astype( str ) }, index=[0] )
+
+def mean_absolute_percentage_error( y, yhat ):
+    return np.mean( np.abs( (y - yhat ) / y ) )
+
+def ml_error( model_name, y, yhat ):
+    mae = mean_absolute_error( y, yhat )
+    mape = mean_absolute_percentage_error( y, yhat )
+    rmse = np.sqrt( mean_squared_error( y, yhat ) )
+    
+    return pd.DataFrame( { 'Model Name': model_name,
+                           'MAE': mae,
+                           'MAPE': mape,
+                           'RMSE': rmse }, index=[0] )
+
+def cramer_v( x, y ):
+    cm = pd.crosstab( x, y ).values
+    n = cm.sum()
+    r, k = cm.shape
+    
+    chi2 = chi2_contingency( cm )[0]
+    chi2corr = max( 0, chi2 - (k-1)*(r-1)/(n-1) )
+    
+    kcorr = k - (k-1)**2/(n-1)
+    rcorr = r - (r-1)**2/(n-1)
+
+    return np.sqrt( (chi2corr/n) / ( min( kcorr-1, rcorr-1 ) ) )
+
+def jupyter_settings():
+    %matplotlib inline
+    %pylab inline
+    
+    plt.style.use( 'bmh' )
+    plt.rcParams['figure.figsize'] = [25, 12]
+    plt.rcParams['font.size'] = 24
+    
+    display( HTML( '<style>.container { width:100% !important; }</style>') )
+    pd.options.display.max_columns = None
+    pd.options.display.max_rows = None
+    pd.set_option( 'display.expand_frame_repr', False )
+    
+    sns.set()
+jupyter_settings()
+
+aep = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/AEP_hourly.csv', low_memory=False )
+comed = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/COMED_hourly.csv', low_memory=False )
+dayton = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/DAYTON_hourly.csv', low_memory=False )
+deok = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/DEOK_hourly.csv', low_memory=False )
+dom = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/DOM_hourly.csv', low_memory=False )
+duq = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/DUQ_hourly.csv', low_memory=False )
+ekpc = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/EKPC_hourly.csv', low_memory=False )
+fe = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/FE_hourly.csv', low_memory=False )
+ni = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/NI_hourly.csv', low_memory=False )
+pjm = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/PJM_Load_hourly.csv', low_memory=False )
+pjme = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/PJME_hourly.csv', low_memory=False )
+pjmw = pd.read_csv( 'C:/Users/sanvw/OneDrive/Documents/NM Project/PJMW_hourly.csv', low_memory=False )
+
+aep['electric_company'] = 'AEP'
+comed['electric_company'] = 'COMED'
+dayton['electric_company'] = 'DAYTON'
+deok['electric_company'] = 'DEOK'
+dom['electric_company'] = 'DOM'
+duq['electric_company'] = 'DUQ'
+ekpc['electric_company'] = 'EKPC'
+fe['electric_company'] = 'FE'
+ni['electric_company'] = 'NI'
+pjm['electric_company'] = 'PJM'
+pjme['electric_company'] = 'PJME'
+pjmw['electric_company'] = 'PJMW'
+
+aep = aep.rename( columns={'AEP_MW': 'mw_energy_consumption'} )
+comed = comed.rename( columns={'COMED_MW': 'mw_energy_consumption'} )
+dayton = dayton.rename( columns={'DAYTON_MW': 'mw_energy_consumption'} )
+deok = deok.rename( columns={'DEOK_MW': 'mw_energy_consumption'} )
+dom = dom.rename( columns={'DOM_MW': 'mw_energy_consumption'} )
+duq = duq.rename( columns={'DUQ_MW': 'mw_energy_consumption'} )
+ekpc = ekpc.rename( columns={'EKPC_MW': 'mw_energy_consumption'} )
+fe = fe.rename( columns={'FE_MW': 'mw_energy_consumption'} )
+ni = ni.rename( columns={'NI_MW': 'mw_energy_consumption'} )
+pjm = pjm.rename( columns={'PJM_Load_MW': 'mw_energy_consumption'} )
+pjme = pjme.rename( columns={'PJME_MW': 'mw_energy_consumption'} )
+pjmw = pjmw.rename( columns={'PJMW_MW': 'mw_energy_consumption'} )
+
+
+df_raw = pd.concat( [aep, comed, dayton, deok, dom, duq, ekpc, fe, ni, pjm, pjme, pjmw] )
+print(df_raw.sample(5))
+print("\n")
+print(df_raw.shape)
+print("\n")
+df1 = df_raw.copy()
+cols_old = ['Datetime', 'mw_energy_consumption', 'electric_company']
+cols_new = ['datetime', 'mw_energy_consumption', 'electric_company']
+df1.columns = cols_new
+
+print( 'Number of Rows: {}'.format( df1.shape[0] ) )
+print( 'Number of Cols: {}'.format( df1.shape[1] ) )
+
+print(df1.dtypes)
+print("\n")
+
+print(df1.isna().sum())
+print("\n")
+
+num_attributes = df1.select_dtypes( include=['float64'] )
+cat_attributes = df1.select_dtypes( exclude=['float64', 'datetime64[ns]'] )
+
+num_attributes.sample()
+
+cat_attributes.sample()
+
+
+ct1 = pd.DataFrame( num_attributes.apply( np.mean ) ).T
+ct2 = pd.DataFrame( num_attributes.apply( np.median ) ).T
+
+
+d1 = pd.DataFrame( num_attributes.apply( np.std ) ).T
+d2 = pd.DataFrame( num_attributes.apply( min ) ).T
+d3 = pd.DataFrame( num_attributes.apply( max ) ).T
+d4 = pd.DataFrame( num_attributes.apply( lambda x: x.max() - x.min() ) ).T
+d5 = pd.DataFrame( num_attributes.apply( lambda x: x.skew() ) ).T
+d6 = pd.DataFrame( num_attributes.apply( lambda x: x.kurtosis() ) ).T
+
+
+m = pd.concat( [d2, d3, d4, ct1, ct2, d1, d5, d6] ).T.reset_index()
+m.columns = ( ['attributes', 'min', 'max', 'range', 'mean', 'median', 'std', 'skew', 'kurtosis'])
+
+print(m)
+print("\n")
+
+sns.distplot( df1['mw_energy_consumption'] )
+
+cat_attributes.apply( lambda x: x.unique().shape[0] )
+sns.boxplot( x= 'electric_company', y='mw_energy_consumption' , data=df1 )
+
+df2 = df1.copy()
+
+df2['date'] = df2['datetime'].dt.date
+df2['year'] = df2['datetime'].dt.year
+df2['month'] = df2['datetime'].dt.month
+df2['hour_of_day'] = df2['datetime'].dt.hour
+df2['season'] = df2['datetime'].apply( lambda x: 'Winter' if x.month == 12 or x.month == 1 or x.month == 2 else 'Spring' if  x.month == 3 or x.month == 4 or x.month == 5 else 'Summer' if  x.month == 6 or x.month == 7 or x.month == 8 else 'Autumn' if  x.month == 9 or x.month == 10 or x.month == 11 else '')
+df2['holidays'] = df2['datetime'].apply( lambda x: 'Holiday' if x in holidays.US() else 'Holiday' if x + datetime.timedelta(days=1) in holidays.US() else 'Normal day' )
+df2['day_of_week'] = df2['datetime'].dt.weekday
+df2.dtypes
+df2['date'] = pd.to_datetime( df2['date'] )
+df2.dtypes
+num_attributes = df2.select_dtypes( include=['int64', 'float64'] )
+cat_attributes = df2.select_dtypes( exclude=['int64', 'float64', 'datetime64[ns]'] )
+print(df2.sample(10).T)
+
+
+
+
+
+
